@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Summary</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f0f0f0;
+        overflow: auto; /* Allow the page to scroll */
+      }
+      .container {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 800px; /* Wider container */
+        max-height: 80vh; /* Prevent container from overflowing the screen */
+        overflow-y: auto; /* Enable scrolling within the container */
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      input[type="url"] {
+        width: 97%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 16px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      button:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+      #summary {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        word-wrap: break-word;
+        max-height: 300px; /* Limit the height of the summary box */
+        overflow-y: auto; /* Allow scrolling inside the summary box */
+      }
+      #timer {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Video Summary</h2>
+      <input
+        type="url"
+        id="videoUrl"
+        placeholder="Enter YouTube video URL"
+        required
+      />
+      <button id="getSummaryBtn" onclick="getSummary()">Get Summary</button>
+
+      <div id="summary"></div>
+      <div id="timer"></div>
+      <!-- Timer Display -->
+    </div>
+
+    <script>
+      async function getSummary() {
+        const url = document.getElementById("videoUrl").value;
+        const summaryDiv = document.getElementById("summary");
+        const timerDiv = document.getElementById("timer");
+        const button = document.getElementById("getSummaryBtn");
+
+        // Disable the button to prevent multiple submissions
+        button.disabled = true;
+
+        if (!url) {
+          summaryDiv.textContent = "Please enter a valid YouTube URL.";
+          // Enable the button back after an error
+          button.disabled = false;
+          return;
+        }
+
+        // Display the "Processing..." message and show the timer
+        summaryDiv.textContent = "Processing... Please wait...";
+        let seconds = 0;
+        timerDiv.textContent = `Time spent: ${seconds}s`;
+
+        // Start the timer
+        const timer = setInterval(() => {
+          seconds++;
+          timerDiv.textContent = `Time spent: ${seconds}s`;
+        }, 1000); // Update every second
+
+        try {
+          const response = await fetch("http://localhost:8000/summarize", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ url: url }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to get summary from the server");
+          }
+
+          const data = await response.json();
+          summaryDiv.textContent = data.summary || "No summary available.";
+        } catch (error) {
+          summaryDiv.textContent = "Error: " + error.message;
+        } finally {
+          // Stop the timer after the response
+          clearInterval(timer);
+          // Enable the button back after processing
+          button.disabled = false;
+        }
+      }
+    </script>
+  </body>
+</html>
