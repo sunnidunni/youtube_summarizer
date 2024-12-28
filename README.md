@@ -72,6 +72,6 @@ Example response:
 }
 ```
 
-You can see an example by opening **index.html** on your browser (you could drag and drop) after starting the Fastapi server.
+You can see an example with **index.html**. See how it works by opening it on your browser after starting the Fastapi server.
 
 <img width="952" alt="image" src="https://github.com/user-attachments/assets/b2272c5f-629c-402a-b197-f92e86938595" />
