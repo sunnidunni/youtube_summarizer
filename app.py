@@ -8,21 +8,18 @@ from openai import OpenAI
 
 app = FastAPI()
 
-# Pydantic model for the input
 app.add_middleware(
     CORSMiddleware,
-    # Allows all origins (use specific URLs in production)
+    # Allows all origins, http methods, headers
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"], 
+    allow_headers=["*"],  
 )
 
 
 class VideoSummaryRequest(BaseModel):
     url: str
-
-# Pydantic model for the response
 
 
 class VideoSummaryResponse(BaseModel):
@@ -34,7 +31,7 @@ async def summarize_video(request: VideoSummaryRequest):
     url = request.url
     audio_output = 'audio.wav'
 
-    # Download the video using yt_dlp
+    # set up download
     ydl_opts = {
         'format': 'bestaudio/best',
         'outtmpl': 'audio',
