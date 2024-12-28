@@ -59,7 +59,7 @@ async def summarize_video(request: VideoSummaryRequest):
         # Summarize the transcription using OpenAI
         client = OpenAI(
             base_url="https://api.novita.ai/v3/openai",
-            api_key="ee0ea824-15e9-4571-9084-4f6047b7948c",
+            api_key="YOUR-API-KEY",
         )
 
         model_name = "meta-llama/llama-3.1-8b-instruct"
