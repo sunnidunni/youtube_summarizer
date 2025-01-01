@@ -1,20 +1,21 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import yt_dlp
-import whisper
-import os
+# import yt_dlp
+# import whisper
+# import os
 from openai import OpenAI
+from youtube_transcript_api import YouTubeTranscriptApi
+from urllib.parse import urlparse, parse_qs
 
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    # Allows all origins, http methods, headers
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"], 
-    allow_headers=["*"],  
+    allow_methods=["*"],  
+    allow_headers=["*"], 
 )
 
 
@@ -29,34 +30,51 @@ class VideoSummaryResponse(BaseModel):
 @app.post("/summarize", response_model=VideoSummaryResponse)
 async def summarize_video(request: VideoSummaryRequest):
     url = request.url
-    audio_output = 'audio.wav'
+    # audio_output = 'audio.wav'
 
-    # set up download
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'outtmpl': 'audio',
-        'postprocessors': [
-            {
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'wav',
-                'preferredquality': '192',
-            }
-        ],
-    }
+    # # Download the video using yt_dlp
+    # ydl_opts = {
+    #     'format': 'bestaudio/best',
+    #     'outtmpl': 'audio',
+    #     'postprocessors': [
+    #         {
+    #             'key': 'FFmpegExtractAudio',
+    #             'preferredcodec': 'wav',
+    #             'preferredquality': '192',
+    #         }
+    #     ],
+    # }
+
+    def get_yt_id(url):
+        query = urlparse(url)
+        if query.hostname == 'youtu.be': return query.path[1:]
+        if query.hostname in {'www.youtube.com', 'youtube.com', 'music.youtube.com'}:
+            if query.path == '/watch': return parse_qs(query.query)['v'][0]
+            if query.path[:7] == '/watch/': return query.path.split('/')[2]
+            if query.path[:7] == '/embed/': return query.path.split('/')[2]
+            if query.path[:3] == '/v/': return query.path.split('/')[2]
 
     try:
-        # Download audio from the URL
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+        # # Download audio from the URL
+        # with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        #     ydl.download([url])
 
-        # Transcribe the audio using Whisper
-        model = whisper.load_model("base")
-        transcription = model.transcribe(audio_output)['text']
+        # # Transcribe the audio using Whisper
+        # model = whisper.load_model("base")
+        # transcription = model.transcribe(audio_output)['text']
+        yt_id = get_yt_id(url)
+
+        srt = YouTubeTranscriptApi.get_transcript(yt_id, 
+                                                languages=['en'])
+        
+        transcription = ''
+        for i in srt:
+            transcription+= ' '+ i['text']
 
         # Summarize the transcription using OpenAI
         client = OpenAI(
             base_url="https://api.novita.ai/v3/openai",
-            api_key="YOUR-API-KEY",
+            api_key="YOUR_API_KEY",
         )
 
         model_name = "meta-llama/llama-3.1-8b-instruct"
@@ -86,8 +104,8 @@ async def summarize_video(request: VideoSummaryRequest):
         else:
             summary = chat_completion_res.choices[0].message.content
 
-        # Clean up temporary files
-        os.remove(audio_output)
+        # # Clean up temporary files
+        # os.remove(audio_output)
 
         # Return the summary
         return VideoSummaryResponse(summary=summary)
