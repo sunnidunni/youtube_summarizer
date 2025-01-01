@@ -2,6 +2,10 @@
 
 This project allows users to summarize YouTube videos using an API built with **FastAPI**. The system downloads a video, extracts the audio, transcribes it using **Whisper**, and then summarizes the transcription with **OpenAI**.
 
+### Update:
+
+The current version uses youtube's subtitle extraction API instead. So anything related to whisper can be ignored unless you want to use whisper instead, for example for videos with no subtitles.
+
 ## Requirements
 
 To run this project, make sure you have the following dependencies installed:
