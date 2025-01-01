@@ -1,6 +1,6 @@
 # Youtube_Summarizer
 
-# [example](https://sunnidunni.github.io/youtube_summarizer/)
+# [example](https://sunnidunni.github.io/youtube_summarizer/) (if uvicorn being hosted)
 
 This project allows users to summarize YouTube videos using an API built with **FastAPI**. The system downloads a video, extracts the audio, transcribes it using **Whisper**, and then summarizes the transcription with **OpenAI**.
 
